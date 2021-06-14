@@ -24,7 +24,7 @@ else
     end
     
     F0x = 1/(size_um(2)); % Smallest spatial frequency
-    F0y = 1/(size_um(2)); % Smallest spatial frequency
+    F0y = 1/(size_um(1)); % Smallest spatial frequency
     
     fCutoff = 1/(lambda_nm/NA); % Largest frequency supported by lens
     
