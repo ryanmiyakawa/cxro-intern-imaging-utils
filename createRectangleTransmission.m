@@ -88,7 +88,6 @@ absorber_thickness(region_fallingEdge) = ...
 
 vacuum_thickness = flatTopRayLength - absorber_thickness;
 
-imagesc(vacuum_thickness)
 
 % Compute amplitude and phase in each region:
 output = exp(-2*pi*k * absorber_thickness/lambda_nm) .* exp(2i*pi*n*absorber_thickness/lambda_nm) ...
