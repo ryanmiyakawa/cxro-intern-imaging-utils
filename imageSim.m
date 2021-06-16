@@ -1,4 +1,4 @@
-function filtered = imageSim(object, size_um, lambda_nm, NA)
+function [intens, E] = imageSim(object, size_um, lambda_nm, NA)
 
 
 % Check if 1D or 2D:
@@ -24,7 +24,7 @@ else
     end
     
     F0x = 1/(size_um(2)); % Smallest spatial frequency
-    F0y = 1/(size_um(1)); % Smallest spatial frequency
+    F0y = 1/(size_um(2)); % Smallest spatial frequency
     
     fCutoff = 1/(lambda_nm/NA); % Largest frequency supported by lens
     
@@ -45,6 +45,9 @@ else
 end
 
 
+
+E = filtered;
+intens = abs(E).^2;
 
 
 

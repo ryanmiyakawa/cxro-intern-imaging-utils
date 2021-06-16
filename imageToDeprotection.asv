@@ -1,5 +1,4 @@
-function [thresholded, latentImage] = imageToDeprotection(imgIntens, sz_um, dose_mJpcm2, ...
-                                blur_nm, rate, threshold)
+function out = imageToDeprotection(imgIntens, sz_um, dose_mJpcm2, blur, rate)
 
 mpm addpath
 
@@ -14,7 +13,6 @@ else
 end
 
 pxArea = sx * sy/(sr*sc);
-pxLen = sx/sr;
 
 % Get dose per pixel
 
@@ -41,18 +39,14 @@ imgIntens = imgIntens/mxPixel * ppp;
 imgIntens = imgIntens + sqrt(imgIntens).*randn(size(imgIntens));
 imgIntens = abs(real(imgIntens));
 
-% Normalize to area
-cellSize = 2/1000;
-pxRat = pxLen/cellSize;
-Nr = round(pxRat * sr);
-Nc = round(pxRat * sc);
-
-scaledImg = bin2(imgIntens, Nr, Nc);
+% Normalize to rate
+nominalPxArea = 0.01^2;
+pxRat = pxArea/nominalPxArea;
+imgIntens = imgIntens/pxRat;
 
 % log events
-events = rand(size(scaledImg)).*scaledImg;
-events(events > rate) = 1;
-events(events ~= 1) = 0;
+events = randn
+(rate / pxArea);
 
 
 % create grid:
@@ -62,22 +56,12 @@ yidx = linspace(-sy/2, sy/2, sr) * 1000;
 [X, Y] = meshgrid(xidx, yidx);
 
 % create gaussian:
-gaus = (exp(-((X).^2 + (Y).^2)/(2*blur_nm^2)));
+gaus = (exp(-((X).^2 + (Y).^2)/(2*blur^2)));
 
-% resize and conv
-events = bin2(events, sr, sc);
-latentImage = cconv2(gaus, events);
-
-mxVal = max(latentImage(:));
-
-thresholded = latentImage;
-thresholded(thresholded < mxVal * threshold) = 0;
-thresholded(thresholded ~= 0) = 1;
+imgIntens = cconv2(gaus, imgIntens);
 
 
+% conv
 
-
-
-
-
+out = imgIntens;
 
