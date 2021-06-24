@@ -1,6 +1,6 @@
 function [output, idealMask] = createRectangleTransmission(xCoords, yCoords, center, zElevation, ...
-                                sz, idx)
-                      
+    sz, idx)
+
 lambda_nm = 13.5; % EUV wavelength relevant for semiconductors
 aoi = 6; % degrees
 
@@ -10,6 +10,9 @@ if ~isnumeric(idx)
         case 'Mo'
             delta = 0.07620647;
             beta = 0.00643542456;
+        case 'Pt'
+            delta = 0.109337106;
+            beta = 0.0600363575;
         case 'Ru'
             delta = 0.113639966;
             beta = 0.0170648936;
@@ -46,7 +49,7 @@ leftEdgeX           = xCenter - xSize/2;
 rightEdgeX          = xCenter + xSize/2;
 botEdgeY            = yCenter - ySize/2;
 topEdgeY            = yCenter + ySize/2;
-    
+
 leftLeadingEdgeX    = xCenter - xSize/2 + zElevation*tand(aoi);
 leftFlatTopEdgeX    = xCenter - xSize/2 + (h + zElevation)*tand(aoi);
 rightFlatTopEdgeX   = xCenter + xSize/2 + zElevation*tand(aoi);
@@ -62,13 +65,13 @@ flatTopRayLength = h/cosd(aoi);
 
 % Split into 4 regions:  Vac, flat_top, leading_edge, falling_edge
 region_flat_top = (botEdgeY <= yCoords & yCoords <= topEdgeY) & ... % Y-coord constraints
-           leftFlatTopEdgeX <= xCoords & xCoords <= rightFlatTopEdgeX; % X-coord constraints
-      
+    leftFlatTopEdgeX <= xCoords & xCoords <= rightFlatTopEdgeX; % X-coord constraints
+
 region_leadingEdge = (botEdgeY <= yCoords & yCoords <= topEdgeY) & ... % Y-coord constraints
-           leftLeadingEdgeX <= xCoords & xCoords <= leftFlatTopEdgeX; % X-coord constraints
-      
+    leftLeadingEdgeX <= xCoords & xCoords <= leftFlatTopEdgeX; % X-coord constraints
+
 region_fallingEdge = (botEdgeY <= yCoords & yCoords <= topEdgeY) & ... % Y-coord constraints
-         rightFlatTopEdgeX <= xCoords & xCoords <= rightFallingEdgeX; % X-coord constraints
+    rightFlatTopEdgeX <= xCoords & xCoords <= rightFallingEdgeX; % X-coord constraints
 
 region_vac = ~(region_flat_top | region_leadingEdge | region_fallingEdge);
 
@@ -79,19 +82,19 @@ absorber_thickness = zeros(size(xCoords));
 absorber_thickness(region_flat_top) = flatTopRayLength;
 
 absorber_thickness(region_leadingEdge) = ...
-        (xCoords(region_leadingEdge) - leftLeadingEdgeX) / (leftFlatTopEdgeX - leftLeadingEdgeX) ...
-            * flatTopRayLength;
-        
+    (xCoords(region_leadingEdge) - leftLeadingEdgeX) / (leftFlatTopEdgeX - leftLeadingEdgeX) ...
+    * flatTopRayLength;
+
 absorber_thickness(region_fallingEdge) = ...
-        (rightFallingEdgeX - xCoords(region_fallingEdge)) / (rightFallingEdgeX - rightFlatTopEdgeX) ...
-            * flatTopRayLength;
+    (rightFallingEdgeX - xCoords(region_fallingEdge)) / (rightFallingEdgeX - rightFlatTopEdgeX) ...
+    * flatTopRayLength;
 
 vacuum_thickness = flatTopRayLength - absorber_thickness;
 
 
 % Compute amplitude and phase in each region:
 output = exp(-2*pi*k * absorber_thickness/lambda_nm) .* exp(2i*pi*n*absorber_thickness/lambda_nm) ...
-            .*  exp(2i*pi*n_vac*(vacuum_thickness/lambda_nm));
+    .*  exp(2i*pi*n_vac*(vacuum_thickness/lambda_nm));
 
 
 

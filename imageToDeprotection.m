@@ -1,7 +1,19 @@
 function [thresholded, latentImage] = imageToDeprotection(imgIntens, sz_um, dose_mJpcm2, ...
-                                blur_nm, rate, threshold)
+                                blur_nm, rate, threshold, turnOffPhotonStatistics, psrand)
 
+                            
 mpm addpath
+
+
+if nargin < 7
+    turnOffPhotonStatistics = false;
+end
+
+if nargin == 8
+     usePSRandArray = true;
+else
+     usePSRandArray = false;
+end
 
 [sr, sc] = size(imgIntens);
 
@@ -38,7 +50,9 @@ mxPixel = max(abs(imgIntens(:)));
 imgIntens = imgIntens/mxPixel * ppp;
 
 % Add photon noise noise
-imgIntens = imgIntens + sqrt(imgIntens).*randn(size(imgIntens));
+if (~turnOffPhotonStatistics)
+    imgIntens = imgIntens + sqrt(imgIntens).*randn(size(imgIntens));
+end
 imgIntens = abs(real(imgIntens));
 
 % Normalize to area
@@ -50,7 +64,13 @@ Nc = round(pxRat * sc);
 scaledImg = bin2(imgIntens, Nr, Nc);
 
 % log events
-events = rand(size(scaledImg)).*scaledImg;
+if (usePSRandArray)
+    randNumbers = reshape(psrand(1:Nr*Nc), Nr, Nc);
+    events = randNumbers.*scaledImg;
+else
+    events = rand(size(scaledImg)).*scaledImg;
+end
+
 events(events > rate) = 1;
 events(events ~= 1) = 0;
 
@@ -71,8 +91,26 @@ latentImage = cconv2(gaus, events);
 mxVal = max(latentImage(:));
 
 thresholded = latentImage;
+imagesc(1:sr, 1:sc, latentImage, [0, 75]),
+colormap jet
 thresholded(thresholded < mxVal * threshold) = 0;
 thresholded(thresholded ~= 0) = 1;
+
+% 
+% % remove this:
+%
+
+thresholds = linspace(.4, .6, 100);
+widths = []
+for k = 1:length(thresholds)
+    
+threshold = thresholds(k);
+thresholded = latentImage;
+thresholded(thresholded < mxVal * threshold) = 0;
+thresholded(thresholded ~= 0) = 1;
+width = analyzeLines(thresholded);
+widths(k) = width;
+end
 
 
 
